@@ -1,0 +1,15 @@
+--- # full include tasks examples
+- hosts: apacheweb
+  sudo: yes
+  user: test
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - include: plays/packages.yml
+    - name: verify telnet is installed
+      raw: yum list installed | grep telnet
+      register: result
+    - debug: var=result
+
+
+

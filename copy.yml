@@ -1,0 +1,9 @@
+--- # copy module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: copy files for directory
+     action: copy src=/etc/fstab dest=/tmp/fstab mode=0777 owner=test group=test backup=yes

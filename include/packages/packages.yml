@@ -1,0 +1,5 @@
+- name: install httpd
+  yum: pkg=httpd state=latest
+  notify: restart httpd
+- name: install telnet
+  yum: pkg=telnet state=latest

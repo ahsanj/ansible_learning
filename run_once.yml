@@ -1,0 +1,11 @@
+--- 
+- hosts: all
+  connection: ssh
+  user: test
+  gather_facts: no
+  tasks:
+    - name: run the uptime command on the hosts
+      raw: /usr/bin/uptime > /home/test/uptime.log
+    - name: list the var dir and log it
+      raw: ls -lah /var >> /home/test/dir.list
+      run_once: true

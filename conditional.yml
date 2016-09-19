@@ -1,0 +1,25 @@
+--- # conditional
+
+- hosts: apacheweb
+  user: test
+  connection: ssh
+  vars: 
+    playbook_type: conditionalexample
+  vars_files:
+    - conf/copyright.yml
+    - conf/webdefaults.yml
+  tasks:
+     - name: Install httpd red/centos
+       yum: pkg=httpd state=installed
+       when: ansible_os_family == "RedHat"
+       notify: restart httpd
+    
+     - name: Install apache debian/ubuntu
+       apt: pkg=apache2 state=latest
+       when: ansible_os_family == "Debain"
+       notify: restart apache
+  handlers:
+      - name: restart httpd
+        service: name=httpd state=restarted
+      - name: restart apache
+        service: name=apache2 state=restarted

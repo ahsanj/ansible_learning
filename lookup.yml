@@ -1,0 +1,8 @@
+--- # lookup
+- hosts: local
+  connection: ssh
+  gather_facts: no
+  user: test
+  tasks:
+   - debug: msg="{{ lookup('env','HOME') }} is the value listed" 
+   - debug: msg="{{ lookup('env','HOSTNAME')}} is listed value" 

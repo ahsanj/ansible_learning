@@ -1,0 +1,14 @@
+#--- first playbook install lynx on apacheweb
+- hosts: apacheweb
+  vars:
+    author_name: test user
+  # if you want to keep all the varibles in a different file you can do the following
+  vars_files:
+  - vars.yml
+  # if you want tin include the variables in the playbook do the follwoing
+  #vars: 
+  #  control_server: localhost
+  #  web_root: /var/www/html
+  tasks: 
+  - name: Install lynx on apacheweb
+    yum : pkg=lynx state=installed update_cache=true

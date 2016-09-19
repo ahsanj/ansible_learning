@@ -1,0 +1,14 @@
+--- # command module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: run the command
+     command: /home/test/testing/test.sh
+     args:
+       # The following will allow us to change the directories for mkdir chmage directory
+       chdir: /home/test/testing
+     register: result
+   - debug: var=result

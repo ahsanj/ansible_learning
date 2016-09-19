@@ -1,0 +1,9 @@
+--- # cron module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: add a cron job to test user
+      cron: name="list files" minute="0" hour="1" job="ls -l > /home/test/cronresult.log"

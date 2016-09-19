@@ -1,0 +1,17 @@
+--- # pause
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: install httpd
+      yum: pkg=httpd state=latest
+    - name: pausing  
+      pause:
+        seconds: 10
+        #prompt: "make sure installation is complete"
+    - name: verify lynx installation
+      yum: pkg=lynx state=absent
+      register: result
+    - debug: var=result

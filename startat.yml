@@ -1,0 +1,17 @@
+--- # start at
+
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: install telnet
+      yum: pkg=telnet state=latest
+    - name: install httpd
+      yum: pkg=httpd state=latest
+    - name: list root
+      command: ls -lah /root
+      register: result
+    - debug: var=result
+  

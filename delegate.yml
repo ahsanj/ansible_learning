@@ -1,0 +1,18 @@
+--- # delegate to
+- hosts: apacheweb
+  connection: ssh
+  gather_facts: no
+  user: test
+  sudo: yes
+  tasks:
+    - name: run the ping on the server5 before installing
+      command: ping -c 4 10.208.130.33 
+      delegate_to: 10.208.130.33 
+      register: result
+    - debug: var=result
+
+    - name: install telnet
+      yum: pkg=telnet state=latest
+    
+
+

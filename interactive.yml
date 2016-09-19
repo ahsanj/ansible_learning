@@ -1,0 +1,23 @@
+--- # interactive playbook
+- hosts: apacheweb
+  user: test
+  connection: ssh
+  gather_facts: no
+  vars:
+    playbook_version: 0.1
+  vars_prompt:
+    - name: pkg
+      prompt: choose the package you want to install
+      default: telnet
+      private: no
+    
+  tasks:
+    - name: Installing the choosen package
+      yum: pkg={{ pkg }} state=latest
+      notify: restart httpd
+  handlers:
+    - name: restart httpd
+      service: name=httpd state=restarted
+      ignore_errors: yes
+
+   

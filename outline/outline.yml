@@ -1,0 +1,43 @@
+--- # ouline playbook
+- hosts: apacheweb
+  user: test
+  connection: ssh
+  gather_facts: no
+
+  tasks:
+  - name: date/time stamp when the playbook starts
+    #raw: /usr/bin/date > /home/test/playbook_start.log
+    command: /usr/bin/date
+    register: timestamp_start
+  - debug: var=timestamp_start
+
+  - name: Install apache web server
+    action: yum name=httpd state=latest
+    notify: Start HTTPD
+ 
+  - name: check if webserver is running
+    command: systemctl status httpd
+    ignore_errors: yes
+    register: result
+  - debug: var=result
+
+  - name: Installed lynx
+    yum: pkg=lynx state=installed
+ 
+  - name: install vnstat
+    yum: pkg=vnstat state=installed
+
+  - name: log all the installed packages
+    #raw: yum list installed > /home/test/installed.log
+    command: yum list installed
+    register: installed_result
+  - debug: var=installed_result
+
+  - name: date/time when the playbook stops
+    command: /usr/bin/date
+    register: timestamp_end
+  - debug: var=timestamp_end
+
+  handlers:
+  - name: Start HTTPD
+    service: name=httpd state=restarted

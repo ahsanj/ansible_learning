@@ -1,0 +1,4 @@
+- name: make sure httpd is installed
+  raw: yum list installed | grep httpd
+  register: result
+- debug: var=result

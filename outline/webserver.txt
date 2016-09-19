@@ -1,0 +1,8 @@
+- perform this task on apacheweb
+- user will be test
+- needs sudo rights
+- install the apached webserver
+- start the web service
+- verify the webserver is running
+- date/time stamp when playbook start and stop
+-install the client software telnet, lynx etc
