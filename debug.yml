@@ -1,0 +1,14 @@
+--- # debug module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: install the webserver
+     yum: name=httpd state=latest
+   - debug : msg="equivalant of sudo yum install"
+   - name: how long the system is up
+     shell: /usr/bin/uptime
+     register: result
+   - debug: var=result

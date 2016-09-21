@@ -1,0 +1,11 @@
+--- # user module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: add user account
+     #user: name=testapache comment="test apache" group=tomcat
+     #user: name=testapache2 shell=/bin/bash
+     #user: name=testapache2 state=absent remove=yes

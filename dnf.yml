@@ -1,0 +1,9 @@
+--- # dnf module (package manager for centos and redhat)
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: install httpd with dnf
+      dnf: name=httpd state=latest

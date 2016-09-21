@@ -1,0 +1,11 @@
+--- # at
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: exmaple of a future command with at module
+      #at: command="ls -lah /var/log > /home/test/at1.log" count=10 units="minutes" 
+      #remove the command so that it never runns
+      at: command="ls -lah /var/log > /home/test/at1.log" state=absent unique=true

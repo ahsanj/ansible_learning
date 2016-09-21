@@ -1,0 +1,10 @@
+--- # fetch module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  tasks:
+   - name: fetch the wordpress download
+     #fetch: src=/etc/ansible dest=/home/test
+     # name the remote file and name the file as prefix-hostname
+     fetch: src=/etc/ansible/hosts dest=/home/test/prefix-{{ ansible_hostname  }} flat=yes

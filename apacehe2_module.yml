@@ -1,0 +1,9 @@
+--- # apache module 
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: disable alias module in apache
+     apache2_module: state=absent name=alias
