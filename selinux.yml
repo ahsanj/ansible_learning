@@ -1,0 +1,14 @@
+--- # selinux module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: check se status
+     command: sestatus
+     register: result
+   - debug: var=result
+   - name: chanage SELinux config to premissive
+     #selinux: state=disable
+     selinux: policy=targeted state=permissive

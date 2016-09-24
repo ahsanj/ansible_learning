@@ -1,0 +1,14 @@
+--- # set fact module
+- hosts: appserver
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  vars:
+    playbook_version: 0.1
+  tasks:
+    - name: local variable display
+      set_fact:
+        singlefacts: something
+    - debug: msg={{ playbook_version }}
+    - debug: msg={{ singlefacts }} 

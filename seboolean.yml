@@ -1,0 +1,10 @@
+--- # seboolean
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: change the Booliean for anonymous Writes on web server
+      seboolean: name=httpd_anon_write state=no persistent=yes
+      #seboolean: name=httpd_anon_write state=yes persistent=yes

@@ -1,0 +1,11 @@
+--- # raw module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: fine the uptime using raw
+      raw: /usr/bin/uptime excutable=/bin/bash
+      register: result
+    - debug: var=result

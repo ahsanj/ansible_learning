@@ -1,0 +1,19 @@
+--- # shell module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: ping the host
+     shell: ping -c 4 localhost > localhost.log
+  # - name: check uptime
+  #   shell: uptime
+  #   register: result
+  # - debug: var=resulti
+   - name: check uptime
+     shell: uptime >> uptime.log
+     args:
+      chdir: logs/
+      creates: uptime.log
+     

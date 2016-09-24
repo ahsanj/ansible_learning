@@ -1,0 +1,13 @@
+--- # stat module 
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  tasks:
+   - name: Does a file/directory in a path exist or not?
+     stat: path=/home/test/abc
+     register: p
+   - debug: msg="the path exists and is a directory"  
+     when: p.stat.isdir is defined and p.stat.isdir 
+
+     

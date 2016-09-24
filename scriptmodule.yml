@@ -1,0 +1,12 @@
+--- # script module allow the local script to be excuted on remote system
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: run the script on the remote system
+      #script: /home/test/playbooks/system_uptime.sh > uptime.log
+      #create the file only if it is not already created(without the 'when' statment)
+      script: /home/test/playbooks/system_uptime.sh creates=/home/test/uptime.log
+
