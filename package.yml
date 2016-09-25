@@ -1,0 +1,8 @@
+--- # package manager
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  tasks:
+    - name: install webserver
+      package: name=telnet state=latest

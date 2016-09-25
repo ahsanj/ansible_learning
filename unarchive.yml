@@ -1,0 +1,10 @@
+--- # unarchive module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: copy and unarchive a file
+      unarchive: src=/home/test/local/test.tar.gz dest=/home/test/local
+      # if you waant to unarchive the local file the use copy=no 

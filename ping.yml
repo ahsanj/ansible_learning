@@ -1,0 +1,10 @@
+--- # ping module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: ping the localhost
+     #command: ping -c 4 localhost
+     ping:
