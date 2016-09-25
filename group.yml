@@ -1,0 +1,12 @@
+--- # group module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: add a new group called tester
+      group: name=tester state=present gid=2020 system=no
+      # To remove , use state=absent
+
+   

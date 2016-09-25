@@ -1,0 +1,13 @@
+--- # aptkey module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: install a dependency needed for apt_repository
+      apt: pkg=pyton-apt state=latest
+    - name: add the repo key
+      apt_key: url=https://whatever state=present
+    - name: add google repo for ubuntu
+      apt_repository: repo='what everthe repo is' state=present 

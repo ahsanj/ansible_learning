@@ -1,0 +1,13 @@
+--- # mail module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  gather_facts: yes
+  tasks:
+   - name: send an email to user indicating build completion
+     mail:
+       host='localhost'
+       port=25
+       to="test"
+       subject="host is finished deploying"
+       body="syetem called {{ ansible_hostname }} has been sucessfully setup"

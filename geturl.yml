@@ -1,0 +1,10 @@
+--- # get url
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: Get and download the wordpress 
+     get_url: url=https://wordpress.org/latest.tar.gz dest=/home/test 
+     # 

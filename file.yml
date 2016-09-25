@@ -1,0 +1,9 @@
+--- # file module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: make new directory structure
+      file: path=/var/www/html state=directory

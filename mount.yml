@@ -1,0 +1,11 @@
+--- # mount module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: make a new directory
+      file: path=/mnt/data state=directory
+    - name: Mount the remote data partition
+      mount: name=/mnt/data src=/dev/xvdf1 fstype=ext3 opts=rw state=present

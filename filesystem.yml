@@ -1,0 +1,9 @@
+--- # File system module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: Format the remote data partition
+      filesystem: fstype=ext4 dev=xvdf1 opts="-cc"

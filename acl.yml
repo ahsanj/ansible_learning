@@ -1,0 +1,16 @@
+--- # ACL module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: get the acl 
+     acl: name=/etc/test.acl.txt
+     register: aclinfo
+   - debug: msg={{ aclinfo }}
+   - name: add more permission to filee
+     acl: name=/etc/test.acl.txt entity=test etype=user permissions="rw" state=present
+     register: result
+   - debug: var=result
+    
