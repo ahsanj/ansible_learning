@@ -1,0 +1,15 @@
+--- # kernel blacklist module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: blaclkist the Dummy module
+      kernel_blacklist: name=dummy state=present
+#on remote system
+#[root@web-client modprobe.d]# pwd
+#/etc/modprobe.d
+#[root@web-client modprobe.d]# ll
+#total 8
+#-rw-r--r--. 1 root root   16 Sep 26 13:03 blacklist-ansible.conf 

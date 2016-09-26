@@ -1,0 +1,11 @@
+--- # mysql_user module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: yes
+  tasks:
+   - name: Install the python mysql support library
+     yum: pkg=MySQL-python state=latest
+   - name: create a new user ahsan and give all access    
+     mysql_user: name=ahsan password=123password priv=*.*:ALL state=present login_user=root login_password=""
