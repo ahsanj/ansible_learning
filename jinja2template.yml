@@ -1,0 +1,13 @@
+--- # jinja2 template module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  vars:
+    userName: test
+    userPassword: password123
+    ConnectionType: SFTP
+  tasks:
+    - name: Install the configuration filr customized for the system
+      template: src=files/test.conf.j2 dest=/home/test/test.conf owner=test group=test mode=750
+    

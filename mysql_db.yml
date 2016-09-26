@@ -1,0 +1,21 @@
+--- # mysql_db module(create or delete a DB also helps with mysql dump and import)
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  tasks:
+    - name: install mysql/mariaDB
+      yum: pkg=mariadb-server state=present
+      when: ansible_os_family  == "RedHat"
+      notify: start mariadb
+    - name: install the python mysql support libraries
+      yum: pkg=MySQL-python state=latest
+    - name: create new DB
+      mysql_db: name=ahsanjaved state=present login_user=root login_password=""
+    - name: create mariadb/mysql dump
+      mysql_db: name=mysql state=dump target=/home/test/mysql.sql login_user=root login_password=""
+    - name: Import the DB
+      mysql_db: name=ahsanjaved state=import target=/home/test/mysql.sql login_user=root login_password=""
+  handlers:
+     - name: start mariadb
+       command: systemctl start mariadb

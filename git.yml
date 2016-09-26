@@ -1,0 +1,9 @@
+--- # git module
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: no
+  tasks:
+   - name: checking out a repo on the remote server
+     git: repo=https://github.com/rackspace/pyrax.git dest=/var/www/html 
