@@ -1,2 +1,4 @@
 - name: restart httpd
-  service: name=httpd state=restarted 
+  service: name=httpd state=restarted
+- name: restart apache2
+  service: name=apache2 state=restarted 

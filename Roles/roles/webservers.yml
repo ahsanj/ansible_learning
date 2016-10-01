@@ -1,5 +1,5 @@
 --- # Master playbook for web servers
-- hosts: apacheweb
+- hosts: ubuntu:apacheweb
   user: test
   sudo: yes
   connection: ssh

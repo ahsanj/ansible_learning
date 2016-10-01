@@ -1,3 +1,11 @@
 - name: install httpd
-  yum: name=httpd state=latest
+  yum: name={{ redhat_apache }} state=latest
+  when: ansible_os_family == 'RedHat' 
+  ignore_errors: yes
   notify: restart httpd
+
+- name: install apache2
+  apt: name={{ debain_apache }} state=latest
+  when: ansible_os_family == 'Debian'
+  ignore_errors: yes
+  notify: restart apache2
