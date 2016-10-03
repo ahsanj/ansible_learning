@@ -1,0 +1,22 @@
+- name: install httpd
+  yum: pkg=httpd state=latest
+#  notify: restart httpd
+- shell: systemctl status httpd
+  register: result
+  # -1 = as soon as it gets the postive result
+  until: result.stdout.find("active (running)" ) != -1
+  retries: 5
+  delay: 5
+- debug: var=result
+
+
+#- name: start httpd
+#  command: systemctl start httpd
+
+#- name: wait for the service to start at port 80
+#  wait_for:
+#    port: 80
+#    state: started
+
+- name: install telnet
+  yum: pkg=telnet state=latest
