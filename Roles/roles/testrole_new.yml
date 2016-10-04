@@ -1,0 +1,15 @@
+--- # ouline playbook
+- hosts: apacheweb
+  user: test
+  connection: ssh
+  sudo: yes
+  pre_tasks:
+    - name: when the playbook start
+      raw: date > /home/test/start.log
+ 
+  roles:
+    - testrole
+  
+  post_tasks:
+    - name: when the playbook ends
+      raw: date > /home/test/end.log 

@@ -9,6 +9,12 @@
   delay: 5
 - debug: var=result
 
+- name: add list of software
+  yum: pkg={{ item }} state=latest
+  with_items:
+    - telnet
+    - vnstat
+  tags: packages
 
 #- name: start httpd
 #  command: systemctl start httpd

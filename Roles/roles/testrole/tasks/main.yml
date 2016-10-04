@@ -1,0 +1,22 @@
+- name: Install apache web server
+  action: yum name=httpd state=latest
+  notify: start httpd
+- name: Install packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+   - vnstat
+   - lynx
+   - telnet
+- name: check if webserver is running
+  command: systemctl status httpd
+  ignore_errors: yes
+  register: result
+- debug: var=result
+
+#- name: log all the installed packages
+  #raw: yum list installed > /home/test/installed.log
+    #    command: yum list installed
+    #        register: installed_result
+    #          - debug: var=installed_result
+    #
+ 
