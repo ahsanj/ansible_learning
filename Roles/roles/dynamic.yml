@@ -1,0 +1,14 @@
+--- # Master playbook for web servers
+# usage=   ansible-playbook dynamic.yml --extra-vars "hosts=apacheweb  user=test role=webservers"
+- hosts: '{{ hosts }}'
+  user: '{{ user }}'
+  sudo: yes
+  connection: ssh
+  pre_tasks:
+    - name: When did the role start
+      raw: date > /home/test/startofrole.log
+  roles:
+   - '{{ role }}'
+  post_tasks:
+    - name: When did the role ended
+      raw: date > /home/test/endofrole.log
