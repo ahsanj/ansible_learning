@@ -1,0 +1,51 @@
+<VirtualHost *:80>
+        ServerName {{ ServerName }}
+        ServerAlias www.{{ ServerName }}
+        DocumentRoot /var/www/vhosts/{{ ServerName }}
+        <Directory /var/www/vhosts/{{ ServerName }}>
+                Options -Indexes FollowSymLinks -MultiViews
+                AllowOverride All
+        </Directory>
+
+        CustomLog /var/log/apache2/{{ ServerName }}-access.log combined
+        ErrorLog /var/log/apache2/{{ ServerName }}-error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+</VirtualHost>
+
+
+<VirtualHost _default_:443>
+        ServerName {{ ServerName }}
+        DocumentRoot /var/www/vhosts/{{ ServerName }}
+        <Directory /var/www/vhosts/{{ ServerName }}>
+                Options -Indexes FollowSymLinks -MultiViews
+                AllowOverride All
+        </Directory>
+
+        CustomLog /var/log/apache2/{{ ServerName }}-ssl-access.log combined
+        ErrorLog /var/log/apache2/{{ ServerName }}-ssl-error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        SSLEngine on
+        SSLCertificateFile    /etc/ssl/certs/ssl-cert-snakeoil.pem
+        SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+
+        <FilesMatch "\.(cgi|shtml|phtml|php)$">
+                SSLOptions +StdEnvVars
+        </FilesMatch>
+
+        BrowserMatch "MSIE [2-6]" \
+                nokeepalive ssl-unclean-shutdown \
+                downgrade-1.0 force-response-1.0
+        BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+</VirtualHost>
+
+
+
+
+

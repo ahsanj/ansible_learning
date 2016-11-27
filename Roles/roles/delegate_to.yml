@@ -1,0 +1,11 @@
+--- # Master playbook for delegate_to module exmaple
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  pre_tasks:
+    - name: ping the appserver
+      raw: ping -c 4 10.208.130.33 > /home/test/delegate.log
+      delegate_to: 127.0.0.1
+  roles:
+    - webservers

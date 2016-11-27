@@ -1,0 +1,34 @@
+--- # build webserver deployment, usage (ansible-playbook webserver.yaml -e 'servername=whatever.com') 
+- hosts: apacheweb
+  connection: ssh
+  user: test
+  sudo: yes
+  gather_facts: on
+  vars:
+   ServerName: '{{ servername }}'
+   apache_package: httpd
+   dist_type: RedHat
+   apache_version: 2.4
+   apache_dir: /var/www/vhost/{{ servername }}
+  tasks:
+   - name: install the webserver package
+     yum: pkg={{ apache_package }} state=installed
+   - name: create webserver directory
+     file: path={{ apache_dir }} state=directory mode=755
+   - name: create the vhost directory on remote host
+     file: path=/etc/httpd/vhost.d state=directory mode=755
+   - name: copy and untar spurce for the site
+     unarchive: src=/home/test/playbooks/usecases/latest.tar.gz dest={{ apache_dir }}
+   - name: copy the default vhost configuration file 
+     template: src=/home/test/playbooks/usecases/apache_default_template dest=/etc/httpd/vhost.d/{{ servername }}.conf owner=root
+   - name: start the webserver
+     service: name=httpd state=restarted
+   - name: Test webserver  
+     command: systemctl status httpd
+     register: result
+   - debug: var=result
+     
+     
+
+
+

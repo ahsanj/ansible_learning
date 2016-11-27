@@ -1,0 +1,7 @@
+commandline arguments
+ansible-playbook --extra-vars '{"NODE_ENV":"staging","GIT_BRANCH":"develop"}' playbook.yml 
+or
+ansible-playbook "-e 'NODE_ENV=staging GIT_BRANCH=develop'" playbook.yml  
+
+following command will give you a json in install-result directory
+ansible apacheweb -s -u test -m yum -a "pkg=httpd state=installed" -t install-results
