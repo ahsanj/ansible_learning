@@ -7,26 +7,32 @@
   vars:
    ServerName: '{{ servername }}'
    apache_package: httpd
-   dist_type: RedHat
+   dist_type: '{{ ansible_os_family }}'
    apache_version: 2.4
    apache_dir: /var/www/vhost/{{ servername }}
   tasks:
-   - name: install the webserver package
+   - name: Install the webserver package
      yum: pkg={{ apache_package }} state=installed
    - name: create webserver directory
      file: path={{ apache_dir }} state=directory mode=755
-   - name: create the vhost directory on remote host
+   - name: Create the vhost directory on remote host
      file: path=/etc/httpd/vhost.d state=directory mode=755
-   - name: copy and untar spurce for the site
+   - name: Copy and untar source for the site
      unarchive: src=/home/test/playbooks/usecases/latest.tar.gz dest={{ apache_dir }}
    - name: copy the default vhost configuration file 
      template: src=/home/test/playbooks/usecases/apache_default_template dest=/etc/httpd/vhost.d/{{ servername }}.conf owner=root
-   - name: start the webserver
-     service: name=httpd state=restarted
+     notify:
+       - start httpd
+       - Test webserver
+       - display result
+  handlers:
+   - name: start httpd
+     service: name={{ apache_package }} state=restarted
    - name: Test webserver  
      command: systemctl status httpd
      register: result
-   - debug: var=result
+   - name: display result
+     debug: var=result
      
      
 
