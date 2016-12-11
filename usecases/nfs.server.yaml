@@ -1,0 +1,13 @@
+--- #  playbook for nfs servers
+- hosts: appserver
+  user: test
+  sudo: yes
+  connection: ssh
+  pre_tasks:
+    - name: When did the role start
+      raw: date > /home/test/startofrole.log
+  roles:
+   - nfs_server
+  post_tasks:
+    - name: When did the role ended
+      raw: date > /home/test/endofrole.log

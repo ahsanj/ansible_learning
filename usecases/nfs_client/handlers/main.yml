@@ -1,0 +1,10 @@
+- name: restart httpd
+  service: name={{ redhat_apache }} state=restarted
+  when: ansible_os_family == "RedHat"
+  ignore_errors: yes
+- name: restart apache2
+  service: name={{ debain_apache }} state=restarted 
+  when: ansible_os_family == "Debain"
+  ignore_errors: yes
+- name: install telnet
+  apt: pkg=telnet state=latest

@@ -1,0 +1,13 @@
+--- #  playbook for nfs.client
+- hosts: local
+  user: test
+  sudo: yes
+  connection: ssh
+  pre_tasks:
+    - name: When did the role start
+      raw: date > /home/test/startofrole.log
+  roles:
+   - nfs_client
+  post_tasks:
+    - name: When did the role ended
+      raw: date > /home/test/endofrole.log

@@ -1,0 +1,16 @@
+- name: Install the NFS server and utilites
+  yum: pkg=nfs-utils state=latest
+- name: Install NFS server libraries
+  yum: pkg=libnfsidmap state=latest
+- name: Copy the export file to remote server
+  copy: src=exports.template dest=/etc/exports owner=root group=root mode=644 
+- name: Start rpcbind
+  service: name=rpcbind state=restarted
+- name: Start NFS Service 
+  service: name=nfs-server state=restarted
+  ignore_errors: yes
+- name: Start the file lock service
+  service: name=nfs-lock state=restarted
+- name: Start the map servive
+  service: name=nfs-idmap state=restarted
+

@@ -1,0 +1,60 @@
+--- # deploying NFS server
+- hosts: appserver
+  connection: ssh
+  user: test
+  gather_facts: yes
+  sudo: yes
+  vars:
+    dist: '{{ ansible_os_family }}'
+    nfsutils_pkg: nfs-utils
+    nfs_libs_pkg: libnfsidmap
+    nfsserver_service: nfs-server
+    nfslock_service: nfs-lock
+    rpcbind_service: rpcbind
+    nfsmap_service: nfs-idmap
+    export_path: /var/share
+  tasks:
+    - name: Install all the packages required for NFS
+      yum: pkg={{ item }} state=latest
+      with_items:
+      - "{{ nfsutils_pkg }}"
+      - "{{ nfs_libs_pkg }}"
+    - name: Copy the export file to remote server
+      copy: src=exports.template dest=/etc/exports owner=root group=root mode=644 
+      notify: start services
+    - name: Install the NFS client and utilites
+      yum: pkg=nfs-utils state=latest
+      delegate_to: 127.0.0.1
+    - name: Install NFS client libraries
+      yum: pkg=libnfsidmap state=latest
+      delegate_to: 127.0.0.1
+    - name: Start rpcbind
+      service: name=rpcbind state=restarted
+      delegate_to: 127.0.0.1       
+    - name: Start the file lock service
+      service: name=nfs-lock state=restarted
+      delegate_to: 127.0.0.1
+    - name: Start the map service
+      service: name=nfs-idmap state=restarted
+      delegate_to: 127.0.0.1
+
+    - name: Create a mount directory
+      file: path=/mnt/remote state=directory mode=755 
+      delegate_to: 127.0.0.1
+    - name: mount the filesystem on the client from NFS server
+      #shell: mount -t nfs 10.208.130.33:/var/share /mnt/remote
+      mount: name=/mnt/remote src=10.208.130.33:/var/share fstype=nfs state=present
+      register: result
+      delegate_to: 127.0.0.1
+    - name: Show the client mount result
+      debug: var=result
+  handlers:
+    - name: start services
+      service: name={{ item }} state=started
+      with_items:
+       - "{{ nfsserver_service }}"
+       - "{{ nfslock_service }}"
+       - "{{ rpcbind_service }}"
+       - "{{ nfsmap_service }}"
+
+

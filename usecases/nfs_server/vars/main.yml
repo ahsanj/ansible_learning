@@ -1,0 +1,9 @@
+dist: '{{ ansible_os_family }}'
+nfsutils_pkg: nfs-utils
+nfs_libs_pkg: libnfsidmap
+nfsserver_service: nfs-server
+nfslock_service: nfs-lock
+rpcbind_service: rpcbind
+nfsmap_service: nfs-idmap
+export_path: /var/share
+
