@@ -1,0 +1,46 @@
+--- # deploying DB
+- hosts: appserver
+  sudo: yes
+  connection: ssh
+  gather_facts: yes
+  user: test 
+  vars:
+   db_package: mariadb-server
+   db_client: mariadb
+   db_instance: mydbtest
+  tasks:
+   - name: Install all the MariaDB packages
+     yum: pkg={{ item }} state=latest
+     with_items:
+     - "{{ db_package }}"
+     - "{{ db_client }}"
+     notify:
+     - startDBservice
+     - RunsecureService
+     - RestartDB
+     - CopyDB
+     - CreateRemoteDB
+     - RestoreDB
+     - ShowDB
+   
+   - name: Add cronjob to run every night
+     cron: name="dbbackup" minute="0" hour="0" job="mysqldump -u root -ppassword123 --databases {{ db_instance }} > dbbackup.sql"
+  handlers:
+   - name: startDBservice
+     service: name=mariadb state=restarted
+   - name: RunsecureService
+     pause: prompt="please run mysql_secure_installation binary and then press Enter for playbook to continue"
+   - name: RestartDB
+     service: name=mariadb state=restarted
+   - name: CopyDB 
+     copy: src=mysqlbkup.sql dest=/var/lib/mysql owner=root group=root mode=755
+   - name: CreateRemoteDB
+     shell: mysqladmin -u root -ppassword123 create {{ db_instance }} 
+   - name: RestoreDB
+     shell: mysql -u root -ppassword123 {{ db_instance }} < /var/lib/mysql/mysqlbkup.sql
+     register: result
+   - debug: var=result
+   - name: ShowDB
+     shell: mysql -uroot -ppassword123 -e "show databases"
+     register: mysqlresult
+   - debug: var=mysqlresult
