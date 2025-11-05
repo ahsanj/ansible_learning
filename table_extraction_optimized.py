@@ -47,7 +47,6 @@ THIRD : Check if photo is a person/place/object/animal, if it is just give a sho
 FOURTH : If the image has any chart/graph/plot, skip it and move on to the following instructions.
 THEN : You are an expert at extracting structured data from image page. Analyze the provided image and extract ALL table content you can find."""
 
-    # Add structured markdown tables context if available
     if markdown_tables and len(markdown_tables) > 0:
         markdown_section = """
 
@@ -112,7 +111,6 @@ def call_gpt4_vision_llm(model, prompt: str, base64_content: str) -> str:
         if not base64_content:
             raise ValueError("No image content provided")
 
-        # Create vision-specific request with proper structure
         message = MultiContentChatMessage(
             contents=[
                 ChatMessageContent(text=prompt),
@@ -128,8 +126,8 @@ def call_gpt4_vision_llm(model, prompt: str, base64_content: str) -> str:
 
         request = GptChatWithVisionCompletionRequest(
             [message],
-            max_tokens=8000,  # Increased for comprehensive table extraction
-            temperature=0     # Zero temperature for deterministic extraction
+            max_tokens=8000,
+            temperature=0
         )
 
         response = model.create_chat_completion(request)
@@ -146,7 +144,6 @@ def call_claude4_vision_llm(model, prompt: str, base64_content: str) -> str:
         if not base64_content:
             raise ValueError("No image content provided")
 
-        # Create vision-specific request for Claude
         prompt_content = GenericMessageContent(text=prompt)
         image_content = GenericMessageContent(
             generic_media=GenericMediaContent(
@@ -176,7 +173,6 @@ def call_gemini_vision_llm(model, prompt: str, base64_content: str) -> str:
         if not base64_content:
             raise ValueError("No image content provided")
 
-        # Create vision-specific request for Gemini 2.5 Pro
         prompt_content = GenericMessageContent(text=prompt)
         image_content = GenericMessageContent(
             generic_media=GenericMediaContent(
@@ -204,7 +200,7 @@ def call_claude4_markdown_llm(model, markdown_text: str) -> str:
     """Call Claude-4 to detect and convert markdown tables to JSON format, replacing tables in-place"""
     try:
         if not markdown_text or not markdown_text.strip():
-            return markdown_text  # Return original text if empty
+            return markdown_text
 
         markdown_table_prompt = """
 You are an expert at detecting and converting markdown tables to structured JSON format.
@@ -245,7 +241,6 @@ CRITICAL REQUIREMENTS:
 - Preserve all spacing, line breaks, and formatting of non-table content
 """
 
-        # Create text-only request for Claude-4
         prompt_content = GenericMessageContent(text=f"{markdown_table_prompt}\n\nMarkdown content to process:\n{markdown_text}")
 
         request: GenericVisionCompletionRequest = GenericVisionCompletionRequest([
@@ -260,25 +255,22 @@ CRITICAL REQUIREMENTS:
 
     except Exception as e:
         logging.error(f"Claude-4 Markdown API error: {str(e)}")
-        return markdown_text  # Return original text on error
+        return markdown_text
 
 
-def extract_tables_from_processed_markdown(processed_markdown: str) -> List[Dict]:  # noqa: C901
+def extract_tables_from_processed_markdown(processed_markdown: str) -> List[Dict]:
     """Extract JSON table objects from processed markdown text"""
     tables = []
     try:
-        # First, look for JSON TABLE START/END blocks
         table_block_pattern = r'JSON TABLE START\s*(.*?)\s*JSON TABLE END'
         table_blocks = re.findall(table_block_pattern, processed_markdown, re.DOTALL | re.IGNORECASE)
 
         for block in table_blocks:
             try:
-                # Clean and parse the JSON
                 json_str = block.strip()
-                json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)  # Remove trailing commas
+                json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
                 parsed_json = json.loads(json_str)
 
-                # Extract tables from the JSON structure
                 if isinstance(parsed_json, dict) and "tables" in parsed_json:
                     for table in parsed_json["tables"]:
                         table["source_llm"] = "markdown_conversion"
@@ -288,7 +280,6 @@ def extract_tables_from_processed_markdown(processed_markdown: str) -> List[Dict
                 logging.warning(f"Failed to parse JSON table block: {e}")
                 continue
 
-        # If no tagged blocks found, fall back to general JSON pattern matching
         if not tables:
             logging.info("No JSON TABLE START/END blocks found, trying general JSON pattern")
             json_pattern = r'\{[^{}]*"tables"[^{}]*\[.*?\].*?\}'
@@ -296,12 +287,10 @@ def extract_tables_from_processed_markdown(processed_markdown: str) -> List[Dict
 
             for match in matches:
                 try:
-                    # Clean and parse the JSON
                     json_str = match.strip()
-                    json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)  # Remove trailing commas
+                    json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
                     parsed_json = json.loads(json_str)
 
-                    # Extract tables from the JSON structure
                     if isinstance(parsed_json, dict) and "tables" in parsed_json:
                         for table in parsed_json["tables"]:
                             table["source_llm"] = "markdown_conversion"
@@ -319,13 +308,11 @@ def extract_tables_from_processed_markdown(processed_markdown: str) -> List[Dict
 def parse_llm_response(response_text: str) -> Dict[str, Any]:
     """Parse LLM response and extract structured table data"""
     try:
-        # Try to extract JSON from the response
         json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
         if json_match:
             json_str = json_match.group()
             return json.loads(json_str)
         else:
-            # If no JSON found, create a basic structure
             return {
                 "tables": [],
                 "confidence": "low",
@@ -346,15 +333,12 @@ def calculate_table_similarity(table1: Dict, table2: Dict) -> float:
         rows1 = table1.get("rows", [])
         rows2 = table2.get("rows", [])
 
-        # If both tables are empty, they're identical
         if not rows1 and not rows2:
             return 1.0
 
-        # If one is empty and other isn't, they're completely different
         if not rows1 or not rows2:
             return 0.0
 
-        # Calculate content similarity - this is the ONLY factor now
         content_similarity = calculate_content_similarity(rows1, rows2)
 
         return content_similarity
@@ -370,18 +354,15 @@ def calculate_content_similarity(rows1: List[List], rows2: List[List]) -> float:
         if not rows1 or not rows2:
             return 0.0
 
-        # Normalize and clean the data for comparison
         normalized_rows1 = normalize_table_rows(rows1)
         normalized_rows2 = normalize_table_rows(rows2)
 
-        # Calculate exact match percentage
         exact_matches = 0
         total_cells = 0
 
         max_rows = max(len(normalized_rows1), len(normalized_rows2))
         min_rows = min(len(normalized_rows1), len(normalized_rows2))
 
-        # Compare overlapping rows
         for i in range(min_rows):
             row1 = normalized_rows1[i] if i < len(normalized_rows1) else []
             row2 = normalized_rows2[i] if i < len(normalized_rows2) else []
@@ -389,25 +370,20 @@ def calculate_content_similarity(rows1: List[List], rows2: List[List]) -> float:
             max_cols = max(len(row1), len(row2))
             min_cols = min(len(row1), len(row2))
 
-            # Count exact matches in overlapping cells
             for j in range(min_cols):
                 total_cells += 1
                 if row1[j] == row2[j]:
                     exact_matches += 1
 
-            # Penalize for missing columns
             total_cells += (max_cols - min_cols)
 
-        # Penalize for missing rows
         total_cells += (max_rows - min_rows) * max(
             len(normalized_rows1[0]) if normalized_rows1 else 0,
             len(normalized_rows2[0]) if normalized_rows2 else 0
         )
 
-        # Calculate exact match ratio
         exact_match_ratio = exact_matches / total_cells if total_cells > 0 else 0.0
 
-        # Return only exact match ratio - no sequence similarity
         return exact_match_ratio
 
     except Exception as e:
@@ -424,13 +400,9 @@ def normalize_table_rows(rows: List[List]) -> List[List]:
             if cell is None:
                 normalized_cell = ""
             else:
-                # Convert to string and normalize
                 cell_str = str(cell).strip()
-                # Remove extra whitespace
                 cell_str = ' '.join(cell_str.split())
-                # Convert to lowercase for case-insensitive comparison
                 cell_str = cell_str.lower()
-                # Remove common formatting characters but keep numbers intact
                 cell_str = cell_str.replace(',', '').replace('$', '').replace('%', '')
                 normalized_cell = cell_str
             normalized_row.append(normalized_cell)
@@ -449,7 +421,6 @@ def find_consensus_tables(llm_responses: Dict[str, Dict]) -> Dict[str, Any]:
     }
 
     try:
-        # Collect all tables from all LLMs
         all_tables = []
         for llm_name, response in llm_responses.items():
             tables = response.get("tables", [])
@@ -459,14 +430,12 @@ def find_consensus_tables(llm_responses: Dict[str, Dict]) -> Dict[str, Any]:
 
         consensus_metadata["total_unique_tables"] = len(all_tables)
 
-        # Group similar tables together
         processed_indices = set()
 
         for i, table1 in enumerate(all_tables):
             if i in processed_indices:
                 continue
 
-            # Find all similar tables
             similar_tables = [table1]
             similar_indices = {i}
 
@@ -479,11 +448,9 @@ def find_consensus_tables(llm_responses: Dict[str, Dict]) -> Dict[str, Any]:
                     similar_tables.append(table2)
                     similar_indices.add(j)
 
-            # Mark these indices as processed
             processed_indices.update(similar_indices)
 
-            # If we have consensus (multiple LLMs extracted similar tables)
-            if len(similar_tables) >= 2:  # At least 2 LLMs agree
+            if len(similar_tables) >= 2:
                 consensus_table = merge_consensus_table(similar_tables)
                 consensus_table["validation_info"] = {
                     "llm_consensus_count": len(similar_tables),
@@ -512,29 +479,23 @@ def find_consensus_tables(llm_responses: Dict[str, Dict]) -> Dict[str, Any]:
 def merge_consensus_table(similar_tables: List[Dict]) -> Dict:
     """Merge multiple similar table extractions into a consensus table with LLM priority"""
 
-    # First, find tables with most rows
     max_rows = max(len(t.get("rows", [])) for t in similar_tables)
     tables_with_max_rows = [t for t in similar_tables if len(t.get("rows", [])) == max_rows]
 
     if len(tables_with_max_rows) == 1:
-        # Only one table has the most rows, use it as base
         base_table = tables_with_max_rows[0]
     else:
-        # Multiple tables have same row count - apply LLM priority: Claude > Gemini > GPT
         llm_priority = {
             "claude4_vision": 3,
             "gemini_vision": 2,
             "gpt4_vision": 1
         }
 
-        # Choose table from highest priority LLM among those with max rows
         base_table = max(tables_with_max_rows,
                         key=lambda t: llm_priority.get(t.get("source_llm", ""), 0))
 
-    # Enhance with additional information from other extractions
     merged_table = base_table.copy()
 
-    # Combine titles and notes
     all_titles = [t.get("title", "") for t in similar_tables if t.get("title")]
     all_notes = [t.get("metadata", {}).get("notes", "") for t in similar_tables if t.get("metadata", {}).get("notes")]
 
@@ -548,7 +509,6 @@ def merge_consensus_table(similar_tables: List[Dict]) -> Dict:
 def get_fallback_tables(llm_responses: Dict[str, Dict]) -> List[Dict]:
     """Get fallback tables when no consensus is achieved using priority order: Claude-4 > Gemini 2.5 Pro > GPT-4"""
     try:
-        # Priority order: Claude-4 > Gemini 2.5 Pro > GPT-4
         priority_order = ["claude4_vision", "gemini_vision", "gpt4_vision"]
 
         for llm_name in priority_order:
@@ -556,16 +516,13 @@ def get_fallback_tables(llm_responses: Dict[str, Dict]) -> List[Dict]:
                 llm_result = llm_responses[llm_name]
                 tables = llm_result.get("tables", [])
 
-                # If this LLM has extracted tables, use them
                 if tables:
                     logging.info(f"Using fallback tables from {llm_name} (extracted {len(tables)} tables)")
-                    # Add source information to tables
                     for table in tables:
                         table["fallback_source"] = llm_name
                         table["fallback_reason"] = "no_committee_consensus"
                     return tables
 
-        # If no LLM extracted any tables, return empty list
         logging.warning("No tables found in any LLM responses for fallback")
         return []
 
@@ -583,13 +540,11 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
     Each executor processes its partition rows sequentially to avoid OOM.
     """
     try:
-        # Get base64 content from the image
         base64_content = row_dict.get('pageImageBase64', '')
         if not base64_content:
             logging.warning(f"No pageImageBase64 content for row")
             return create_error_result(row_dict, "No image content")
 
-        # Convert markdown to structured JSON tables first
         converted_markdown = row_dict.get('converted_markdown', '')
         markdown_tables = []
         updated_converted_markdown = converted_markdown
@@ -609,10 +564,8 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
                 logging.error(f"Error processing markdown: {e}")
                 updated_converted_markdown = converted_markdown
 
-        # Create enhanced prompt with structured markdown tables
         enhanced_prompt = create_table_extraction_prompt(markdown_tables)
 
-        # Call all LLMs in parallel for THIS SINGLE ROW
         llm_responses = {}
 
         def call_llm_wrapper(llm_name, model, prompt, content):
@@ -630,7 +583,6 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
                 logging.error(f"Error calling {llm_name}: {e}")
                 return llm_name, f"Error: {str(e)}"
 
-        # Execute all LLM calls in parallel for this row
         with ThreadPoolExecutor(max_workers=3) as executor:
             futures = {
                 executor.submit(call_llm_wrapper, llm_name, model, enhanced_prompt, base64_content): llm_name
@@ -660,16 +612,13 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
                         "extraction_notes": f"Processing failed: {str(e)}"
                     }
 
-        # Find consensus among LLM responses
         consensus_result = find_consensus_tables(llm_responses)
 
-        # Determine final validated tables
         if consensus_result["consensus_tables"]:
             final_validated_tables = consensus_result["consensus_tables"]
         else:
             final_validated_tables = get_fallback_tables(llm_responses)
 
-        # Update converted_markdown with validated tables
         if final_validated_tables:
             try:
                 validated_tables_json = {
@@ -703,7 +652,6 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
             except Exception as e:
                 logging.error(f"Error formatting validated tables: {e}")
 
-        # Update timestamp
         current_timestamp = row_dict.get('timestamp', '')
         extraction_time = datetime.now().isoformat()
 
@@ -717,9 +665,7 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
         else:
             updated_timestamp = json.dumps({"tables validated": extraction_time})
 
-        # Build result row
         result_row = {
-            # Input columns
             "primaryKey": row_dict.get("primaryKey", ""),
             "originalMediaItemRid": row_dict.get("originalMediaItemRid", ""),
             "originalPath": row_dict.get("originalPath", ""),
@@ -739,7 +685,6 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
             "has_image": row_dict.get("has_image", ""),
             "word_count": row_dict.get("word_count", ""),
 
-            # New extraction columns
             "consensus_tables": json.dumps(consensus_result["consensus_tables"]),
             "consensus_metadata": json.dumps(consensus_result["metadata"]),
             "markdown_tables": json.dumps(markdown_tables),
@@ -839,11 +784,9 @@ def compute(
     spark = ctx.spark_session
     input_df = input_images.dataframe()
 
-    # Separate table and non-table rows
     table_rows_df = input_df.filter(col('has_table') == True)
     non_table_rows_df = input_df.filter(col('has_table') != True)
 
-    # Get counts for logging (this is acceptable as it's just metadata)
     total_rows = input_df.count()
     table_rows_count = table_rows_df.count()
     non_table_rows_count = non_table_rows_df.count()
@@ -861,17 +804,12 @@ def compute(
         output.write_dataframe(empty_df)
         return
 
-    # Create dictionary of LLM models (will be broadcast to executors)
     llm_models = {
         "gpt4_vision": gpt4_vision,
         "claude4_vision": claude4_vision,
         "gemini_vision": gemini_vision
     }
 
-    # ============================================================================
-    # CRITICAL OPTIMIZATION: Use mapPartitions instead of .collect()
-    # This processes data on EXECUTORS, not the driver
-    # ============================================================================
 
     def process_partition_with_llms(partition_rows):
         """
@@ -889,14 +827,11 @@ def compute(
                 if row_count % 10 == 0:
                     logging.info(f"Partition processing row {row_count}")
 
-                # Convert Spark Row to dict
                 row_dict = row.asDict()
 
-                # Process this single row
                 result = process_single_row_with_llms(row_dict, llm_models)
                 results.append(Row(**result))
 
-                # Log progress
                 if row_count % 10 == 0:
                     logging.info(f"Completed {row_count} rows in this partition")
 
@@ -908,31 +843,23 @@ def compute(
         logging.info(f"Partition completed processing {row_count} rows")
         return iter(results)
 
-    # Process table rows using mapPartitions (distributed processing)
     logging.info("Starting distributed processing of table rows across executors")
     start_time = time.time()
 
     table_results_rdd = table_rows_df.rdd.mapPartitions(process_partition_with_llms)
 
-    # Convert RDD back to DataFrame
-    # Infer schema from first result or define explicitly
     table_results_df = spark.createDataFrame(table_results_rdd)
 
-    # Cache the result before action to avoid recomputation
     table_results_df.cache()
-    table_result_count = table_results_df.count()  # Trigger computation
+    table_result_count = table_results_df.count()
 
     processing_time = time.time() - start_time
     logging.info(f"Completed distributed processing of {table_result_count} table rows in {processing_time/60:.1f} minutes")
     logging.info(f"Average time per row: {processing_time/table_result_count:.1f}s")
 
-    # ============================================================================
-    # OPTIMIZATION: Process non-table rows with DataFrame operations (no collect)
-    # ============================================================================
 
     logging.info(f"Processing {non_table_rows_count} non-table rows with DataFrame operations")
 
-    # Update timestamp for non-table rows
     processing_time_str = datetime.now().isoformat()
 
     def update_timestamp_udf(current_timestamp):
@@ -949,7 +876,6 @@ def compute(
 
     timestamp_udf_func = udf(update_timestamp_udf, StringType())
 
-    # Add new columns to non-table rows using DataFrame operations (no memory overhead)
     non_table_results_df = non_table_rows_df \
         .withColumn("status", lit("tables validated")) \
         .withColumn("timestamp", timestamp_udf_func(col("timestamp"))) \
@@ -968,14 +894,10 @@ def compute(
         .withColumn("gemini_vision_parsed", lit("{}")) \
         .withColumn("consensus_achieved", lit("False"))
 
-    # ============================================================================
-    # OPTIMIZATION: Union DataFrames instead of combining lists in driver memory
-    # ============================================================================
 
     logging.info("Combining table and non-table results using DataFrame union")
     output_df = table_results_df.union(non_table_results_df)
 
-    # Log summary statistics
     final_count = output_df.count()
     successful_extractions = output_df.filter(col("consensus_achieved") == "True").count()
 
@@ -987,7 +909,6 @@ def compute(
     if table_result_count > 0:
         logging.info(f"- Committee success rate: {successful_extractions/table_result_count*100:.1f}%")
 
-    # Write output DataFrame (this is streaming operation, no driver memory needed)
     output.write_dataframe(output_df)
 
     logging.info("Output written successfully")
