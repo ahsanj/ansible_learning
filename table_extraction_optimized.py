@@ -665,26 +665,12 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
         else:
             updated_timestamp = json.dumps({"tables validated": extraction_time})
 
-        result_row = {
-            "primaryKey": row_dict.get("primaryKey", ""),
-            "originalMediaItemRid": row_dict.get("originalMediaItemRid", ""),
-            "originalPath": row_dict.get("originalPath", ""),
-            "originalMediaReference": row_dict.get("originalMediaReference", ""),
-            "pageNumber": row_dict.get("pageNumber", ""),
-            "totalPages": row_dict.get("totalPages", ""),
-            "pageBase64": row_dict.get("pageBase64", ""),
-            "pageImageBase64": row_dict.get("pageImageBase64", ""),
+        result_row = row_dict.copy()
+
+        result_row.update({
             "status": "tables validated",
             "timestamp": updated_timestamp,
             "converted_markdown": updated_converted_markdown,
-            "markdown_layout_score": row_dict.get("markdown_layout_score", ""),
-            "markdown_parse_score": row_dict.get("markdown_parse_score", ""),
-            "markdown_ocr_score": row_dict.get("markdown_ocr_score", ""),
-            "markdown_table_score": row_dict.get("markdown_table_score", ""),
-            "has_table": row_dict.get("has_table", ""),
-            "has_image": row_dict.get("has_image", ""),
-            "word_count": row_dict.get("word_count", ""),
-
             "consensus_tables": json.dumps(consensus_result["consensus_tables"]),
             "consensus_metadata": json.dumps(consensus_result["metadata"]),
             "markdown_tables": json.dumps(markdown_tables),
@@ -694,7 +680,7 @@ def process_single_row_with_llms(row_dict: Dict, llm_models: Dict) -> Dict:
             "gemini_vision_parsed": json.dumps(llm_responses.get("gemini_vision", {})),
             "consensus_achieved": str(consensus_result["extraction_successful"]),
             "error": ""
-        }
+        })
 
         return result_row
 
@@ -718,25 +704,11 @@ def create_error_result(row_dict: Dict, error_msg: str) -> Dict:
     else:
         updated_timestamp = json.dumps({"tables validated": error_time})
 
-    return {
-        "primaryKey": row_dict.get("primaryKey", ""),
-        "originalMediaItemRid": row_dict.get("originalMediaItemRid", ""),
-        "originalPath": row_dict.get("originalPath", ""),
-        "originalMediaReference": row_dict.get("originalMediaReference", ""),
-        "pageNumber": row_dict.get("pageNumber", ""),
-        "totalPages": row_dict.get("totalPages", ""),
-        "pageBase64": row_dict.get("pageBase64", ""),
-        "pageImageBase64": row_dict.get("pageImageBase64", ""),
+    error_row = row_dict.copy()
+
+    error_row.update({
         "status": "tables validated",
         "timestamp": updated_timestamp,
-        "converted_markdown": row_dict.get("converted_markdown", ""),
-        "markdown_layout_score": row_dict.get("markdown_layout_score", ""),
-        "markdown_parse_score": row_dict.get("markdown_parse_score", ""),
-        "markdown_ocr_score": row_dict.get("markdown_ocr_score", ""),
-        "markdown_table_score": row_dict.get("markdown_table_score", ""),
-        "has_table": row_dict.get("has_table", ""),
-        "has_image": row_dict.get("has_image", ""),
-        "word_count": row_dict.get("word_count", ""),
         "consensus_tables": "[]",
         "consensus_metadata": "[]",
         "markdown_tables": "[]",
@@ -746,7 +718,9 @@ def create_error_result(row_dict: Dict, error_msg: str) -> Dict:
         "gemini_vision_parsed": "[]",
         "consensus_achieved": "False",
         "error": error_msg
-    }
+    })
+
+    return error_row
 
 
 @configure(
@@ -849,25 +823,7 @@ def compute(
 
     table_results_rdd = table_rows_df.rdd.mapPartitions(process_partition_with_llms)
 
-    output_schema = StructType([
-        StructField("primaryKey", StringType(), True),
-        StructField("originalMediaItemRid", StringType(), True),
-        StructField("originalPath", StringType(), True),
-        StructField("originalMediaReference", StringType(), True),
-        StructField("pageNumber", StringType(), True),
-        StructField("totalPages", StringType(), True),
-        StructField("pageBase64", StringType(), True),
-        StructField("pageImageBase64", StringType(), True),
-        StructField("status", StringType(), True),
-        StructField("timestamp", StringType(), True),
-        StructField("converted_markdown", StringType(), True),
-        StructField("markdown_layout_score", StringType(), True),
-        StructField("markdown_parse_score", StringType(), True),
-        StructField("markdown_ocr_score", StringType(), True),
-        StructField("markdown_table_score", StringType(), True),
-        StructField("has_table", StringType(), True),
-        StructField("has_image", StringType(), True),
-        StructField("word_count", StringType(), True),
+    output_schema = StructType(list(input_df.schema.fields) + [
         StructField("consensus_tables", StringType(), True),
         StructField("consensus_metadata", StringType(), True),
         StructField("markdown_tables", StringType(), True),
@@ -928,21 +884,7 @@ def compute(
 
 
     logging.info("Combining table and non-table results using DataFrame union")
-
-    column_order = [
-        "primaryKey", "originalMediaItemRid", "originalPath", "originalMediaReference",
-        "pageNumber", "totalPages", "pageBase64", "pageImageBase64", "status", "timestamp",
-        "converted_markdown", "markdown_layout_score", "markdown_parse_score",
-        "markdown_ocr_score", "markdown_table_score", "has_table", "has_image", "word_count",
-        "consensus_tables", "consensus_metadata", "markdown_tables", "validated_tables",
-        "gpt4_vision_parsed", "claude4_vision_parsed", "gemini_vision_parsed",
-        "consensus_achieved", "error"
-    ]
-
-    table_results_ordered = table_results_df.select(*column_order)
-    non_table_results_ordered = non_table_results_df.select(*column_order)
-
-    output_df = table_results_ordered.union(non_table_results_ordered)
+    output_df = table_results_df.union(non_table_results_df)
 
     final_count = output_df.count()
     successful_extractions = output_df.filter(col("consensus_achieved") == "True").count()
